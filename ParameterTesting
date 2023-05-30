@@ -13,7 +13,7 @@ properties([
                     classpath: [], 
                     sandbox: false, 
                     script: 
-                        'return["Dev","QA","Stage","Prod"]'
+                        'return[\'Could not get Env\']'
                 ], 
                 script: [
                     classpath: [], 
