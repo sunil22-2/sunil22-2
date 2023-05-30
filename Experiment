@@ -1,0 +1,31 @@
+pipeline {
+    agent any
+    parameters {
+        string(name: 'ENV', defaultValue: 'dev', description: 'Environment')
+        extendedChoice(
+            name: 'PARAMETER_NAME',
+            description: 'Choose a parameter',
+            type: 'PT_SINGLE_SELECT',
+            value: '',
+            visibleItemCount: 1,
+            groovyScript: [
+                script: """
+                    if (binding.variables.ENV == 'dev') {
+                        return 'ami-id'
+                    } else if (binding.variables.ENV == 'qa') {
+                        return 'sg'
+                    } else {
+                        return ''
+                    }
+                """
+            ]
+        )
+    }
+    stages {
+        stage('Example Stage') {
+            steps {
+                echo "Selected parameter: ${params.PARAMETER_NAME}"
+            }
+        }
+    }
+}
