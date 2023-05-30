@@ -1,52 +1,39 @@
-environments = 'lab\nstage\npro'
-
-properties([
-    parameters([
-        [$class: 'CascadeChoiceParameter', 
-            choiceType: 'PT_SINGLE_SELECT',
-            description: 'Select a choice',
-            filterLength: 1,
-            filterable: true,
-            name: 'choice1',
-            referencedParameters: 'ENVIRONMENT',
-            script: [$class: 'GroovyScript',
-                fallbackScript: [
-                    classpath: [], 
-                    sandbox: true, 
-                    script: 'return ["ERROR"]'
-                ],
-                script: [
-                    classpath: [], 
-                    sandbox: true, 
-                    script: """
-                        if (ENVIRONMENT == 'lab') { 
-                            return['aaa','bbb']
-                        }
-                        else {
-                            return['ccc', 'ddd']
-                        }
-                    """.stripIndent()
-                ]
-            ]
-        ]
-    ])
-])
-
 pipeline {
     agent any
-
-    options {
-        disableConcurrentBuilds()
-        timestamps()
-        timeout(time: 30, unit: 'MINUTES')
-    }
     parameters {
-        choice(name: 'ENVIRONMENT', choices: "${environments}")
+        activeChoiceReactiveParam('ENVIRONMENT', 'dev', [
+            name: 'AMI_ID',
+            description: 'AMI ID',
+            filterable: false,
+            choiceType: 'PT_SINGLE_SELECT',
+            script: [
+                $class: 'GroovyScript',
+                fallbackScript: [
+                    classpath: [],
+                    sandbox: true,
+                    script: 'return [""]'
+                ],
+                script: [
+                    classpath: [],
+                    sandbox: true,
+                    script: '''
+                        if (ENVIRONMENT == 'dev') {
+                            return ['ami-12345678']
+                        } else if (ENVIRONMENT == 'uat') {
+                            return ['sg-group-12345678']
+                        } else {
+                            return []
+                        }
+                    '''
+                ]
+            ]
+        ])
     }
     stages {
-        stage("Run Tests") {
+        stage('Example Stage') {
             steps {
-                sh "echo SUCCESS on ${params.ENVIRONMENT}"
+                echo "Selected Environment: ${params.ENVIRONMENT}"
+                echo "AMI ID: ${params.AMI_ID}"
             }
         }
     }
